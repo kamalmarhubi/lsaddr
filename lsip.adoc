@@ -1,0 +1,34 @@
+lsip(1)
+=======
+:doctype: manpage
+
+NAME
+----
+lsip - list IP addresses
+
+SYNOPSIS
+--------
+*lsip* [ *-l46* ] [ _interface_ ... ]
+
+DESCRIPTION
+-----------
+List IP addresses of the specified __interface__s (all IPv4 and IPv6
+addresses on all interfaces by default).
+
+OPTIONS
+-------
+*-l*::
+    use a long listing format
+*-4, --ipv4*::
+    list IPv4 addresses; disables default behaviour of printng all addresses
+*-6, --ipv6*::
+    list IPv6 addresses; disables default behaviour of printng all addresses
+
+AUTHOR
+------
+Kamal Marhubi <kamal@marhubi.com>
+
+
+
+http://www.linuxquestions.org/questions/linux-newbie-8/list-ip-addresses-347096/
+/sbin/ifconfig -a | grep 'inet addr' | awk '{print $2}' | cut -d: -f 2
