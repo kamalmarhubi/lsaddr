@@ -4,16 +4,16 @@ lsaddr(1)
 
 NAME
 ----
-lsaddr - list IP addresses
+lsaddr - list active IP addresses
 
 SYNOPSIS
 --------
-*lsaddr* [ *-l46* ] [ _interface_ ... ]
+*lsaddr* [ *-46* ] [*--include-loopback*] [*--include-ipv6-link-local]* [ _interface_ ... ]
 
 DESCRIPTION
 -----------
-List IP addresses of the specified __interface__s. By default, lists all IP addresses, with the
-loopback interfaces and IPv6 link-local omitted.
+List IP addresses of the specified __interface__s. By default, lists all IP
+addresses, with the loopback interfaces and IPv6 link-local omitted.
 
 OPTIONS
 -------
