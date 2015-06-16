@@ -20,18 +20,12 @@
 #define OPT_INCLUDE_LINK_LOCAL 2
 
 static struct argp_option options[] = {
-    {"ipv4", '4', 0, 0,
-     "List IPv4 addresses",
-     0},
-    {"ipv6", '6', 0, 0,
-     "List IPv6 addresses",
-     0},
+    {"ipv4", '4', 0, 0, "List IPv4 addresses", 0},
+    {"ipv6", '6', 0, 0, "List IPv6 addresses", 0},
     {"include-loopback", OPT_INCLUDE_LOOPBACK, 0, 0,
-     "Include addresses for the loopback interface",
-     0},
+     "Include addresses for the loopback interface", 0},
     {"include-link-local", OPT_INCLUDE_LINK_LOCAL, 0, 0,
-     "Include IPv6 link-local addresses",
-     0},
+     "Include IPv6 link-local addresses", 0},
     {0}};
 
 /* Command line options */
@@ -51,7 +45,8 @@ struct args {
   int num_interfaces;
 };
 
-static error_t parse_opt(int key, char *arg __attribute__((unused)), struct argp_state *state) {
+static error_t parse_opt(int key, char *arg __attribute__((unused)),
+                         struct argp_state *state) {
   struct args *args = state->input;
 
   switch (key) {
@@ -75,11 +70,11 @@ static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
 
 int main(int argc, char **argv) {
   struct args args = {
-    .ip_version_specified = 0,  /* also sets ipv4 and ipv6 to 0 */
-    .include_loopback = 0,
-    .include_link_local = 0,
-    .interfaces = NULL,
-    .num_interfaces = 0,
+      .ip_version_specified = 0, /* also sets ipv4 and ipv6 to 0 */
+      .include_loopback = 0,
+      .include_link_local = 0,
+      .interfaces = NULL,
+      .num_interfaces = 0,
   };
 
   argp_parse(&argp, argc, argv, 0, 0, &args);
@@ -114,7 +109,8 @@ int main(int argc, char **argv) {
   for (int i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
     struct sockaddr_in *sockaddr =
         (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
-    printf("%s\t%s\n", inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)),
+    printf("%s\t%s\n",
+           inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)),
            stuff.ifc_req[i].ifr_name);
   }
 
