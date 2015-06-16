@@ -10,9 +10,9 @@
 #include <unistd.h>
 
 #if INET_ADDRSTRLEN > INET6_ADDRSTRLEN
-#define BUF_LEN #INET_ADDRSTRLEN
+#define ADDRSTRLEN #INET_ADDRSTRLEN
 #else
-#define BUF_LEN INET6_ADDRSTRLEN
+#define ADDRSTRLEN INET6_ADDRSTRLEN
 #endif
 
 /* Options without short options */
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
   }
 
   int i, len;
-  char addr[BUF_LEN];
+  char addr[ADDRSTRLEN];
 
   for (i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
     if (!strncmp(stuff.ifc_req[i].ifr_name, "lo", 2)) {
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
     }
     struct sockaddr_in *sockaddr =
         (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
-    printf("%s\t%s\n", inet_ntop(AF_INET, &sockaddr->sin_addr, addr, BUF_LEN),
+    printf("%s\t%s\n", inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)),
            stuff.ifc_req[i].ifr_name);
   }
 
