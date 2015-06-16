@@ -15,7 +15,7 @@
 #define ADDRSTRLEN INET6_ADDRSTRLEN
 #endif
 
-/* Options without short options */
+/* Keys for command line options without short options */
 #define OPT_INCLUDE_LOOPBACK 1
 #define OPT_INCLUDE_LINK_LOCAL 2
 
@@ -30,8 +30,8 @@ static struct argp_option options[] = {
 
 /* Command line options */
 struct args {
-  /* The union is a little hack to allow setting either ipv4 or ipv6 to result
-   * in ip_version_specified being true. */
+  /* The union and bit fields are a little hack to allow setting either ipv4 or
+   * ipv6 to result in ip_version_specified being true. */
   union {
     int ip_version_specified;
     struct {
