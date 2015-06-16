@@ -12,23 +12,20 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-List IP addresses of the specified __interface__s (all IPv4 and IPv6
-addresses on all interfaces by default).
+List IP addresses of the specified __interface__s. By default, lists all IP addresses, with the
+loopback interfaces and IPv6 link-local omitted.
 
 OPTIONS
 -------
-*-l*::
-    use a long listing format
 *-4, --ipv4*::
-    list IPv4 addresses; disables default behaviour of printng all addresses
+    list IPv4 addresses
 *-6, --ipv6*::
-    list IPv6 addresses; disables default behaviour of printng all addresses
+    list IPv6 addresses
+*--include-loopback*::
+    include addresses for the loopback interface
+*--include-link-local*::
+    include IPv6 link local addresses
 
 AUTHOR
 ------
 Kamal Marhubi <kamal@marhubi.com>
-
-
-
-http://www.linuxquestions.org/questions/linux-newbie-8/list-ip-addresses-347096/
-/sbin/ifconfig -a | grep 'inet addr' | awk '{print $2}' | cut -d: -f 2
