@@ -112,9 +112,6 @@ int main(int argc, char **argv) {
   char addr[ADDRSTRLEN];
 
   for (int i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
-    if (!strncmp(stuff.ifc_req[i].ifr_name, "lo", 2)) {
-      continue;
-    }
     struct sockaddr_in *sockaddr =
         (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
     printf("%s\t%s\n", inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)),
