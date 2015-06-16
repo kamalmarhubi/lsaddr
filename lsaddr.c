@@ -56,6 +56,12 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
     case '6':
       args->ipv6 = 1;
       break;
+    case OPT_INCLUDE_LOOPBACK:
+      args->include_loopback = 1;
+      break;
+    case OPT_INCLUDE_LINK_LOCAL:
+        args->include_link_local = 1;
+        break;
     case ARGP_KEY_ARGS:
       args->interfaces = state->argv + state->next;
       args->num_interfaces = state->argc - state->next;
