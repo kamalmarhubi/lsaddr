@@ -109,10 +109,9 @@ int main(int argc, char **argv) {
     goto errorout;
   }
 
-  int i, len;
   char addr[ADDRSTRLEN];
 
-  for (i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
+  for (int i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
     if (!strncmp(stuff.ifc_req[i].ifr_name, "lo", 2)) {
       continue;
     }
