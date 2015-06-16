@@ -19,7 +19,10 @@ DEPS = $(SRCS:.c=.d)
 	$(A2X) -f manpage $<
 
 .PHONY: all
-all: $(PROG) $(DOCS)
+all: $(PROG) doc
+
+.PHONE: doc
+doc: $(DOCS)
 
 -include $(DEPS)
 
