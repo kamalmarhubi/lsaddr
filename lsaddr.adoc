@@ -1,14 +1,14 @@
-lsip(1)
+lsaddr(1)
 =======
 :doctype: manpage
 
 NAME
 ----
-lsip - list IP addresses
+lsaddr - list IP addresses
 
 SYNOPSIS
 --------
-*lsip* [ *-l46* ] [ _interface_ ... ]
+*lsaddr* [ *-l46* ] [ _interface_ ... ]
 
 DESCRIPTION
 -----------
