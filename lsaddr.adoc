@@ -16,7 +16,7 @@ List IP addresses of the specified __interface__s. By default, lists all IPv4
 and IPv6 addresses, with the loopback interfaces and IPv6 link-local omitted.
 
 The _interface_ names are specified as in *ifconfig(8)*: usually a driver name
-followed by a number, eg *eth0*. Alias interfaces are not supported.
+followed by a number, eg, *eth0*. Alias interfaces are not supported.
 
 OPTIONS
 -------
