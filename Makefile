@@ -16,7 +16,7 @@ OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
 
 %.1: %.adoc
-	$(A2X) -f manpage $<
+	$(A2X) --doctype=manpage --format=manpage $<
 
 .PHONY: all
 all: $(PROG) doc
