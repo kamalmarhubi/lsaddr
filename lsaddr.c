@@ -3,6 +3,7 @@
 #include <error.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <search.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,6 +105,13 @@ int remove_bad_interfaces(int sockfd, char **interfaces,
   return errno ? -1 : 0;
 }
 
+int cmp(const void *left, const void *right) {
+  char **left_sp = (char **)left;
+  char **right_sp = (char **)right;
+
+  return strcmp(*left_sp, *right_sp);
+}
+
 int main(int argc, char **argv) {
   struct args args = {
       .ip_version_specified = 0, /* also sets ipv4 and ipv6 to 0 */
@@ -146,11 +154,16 @@ int main(int argc, char **argv) {
   char addr[ADDRSTRLEN];
 
   for (size_t i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
-    struct sockaddr_in *sockaddr =
-        (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
-    printf("%s\t%s\n",
-           inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)),
-           stuff.ifc_req[i].ifr_name);
+    char *ifc = stuff.ifc_req[i].ifr_name;
+    if (args.num_interfaces == 0 ||
+        lfind(&ifc, args.interfaces, &args.num_interfaces, sizeof(char *),
+              cmp)) {
+      struct sockaddr_in *sockaddr =
+          (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
+      printf("%s\t%s\n",
+             inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)),
+             stuff.ifc_req[i].ifr_name);
+    }
   }
 
   return 0;
