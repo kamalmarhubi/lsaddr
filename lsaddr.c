@@ -61,8 +61,8 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
       args->include_loopback = 1;
       break;
     case OPT_INCLUDE_LINK_LOCAL:
-        args->include_link_local = 1;
-        break;
+      args->include_link_local = 1;
+      break;
     case ARGP_KEY_ARGS:
       args->interfaces = state->argv + state->next;
       args->num_interfaces = state->argc - state->next;
@@ -84,7 +84,8 @@ static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
  * Returns 0 on success, otherwise it returns -1, and `errno` is set according
  * to the last failure that ocurred.
  */
-int remove_bad_interfaces(int sockfd, char **interfaces, size_t *num_interfaces) {
+int remove_bad_interfaces(int sockfd, char **interfaces,
+                          size_t *num_interfaces) {
   // TODO: check args
   struct ifreq req;
   size_t in_ix, out_ix;
@@ -92,7 +93,8 @@ int remove_bad_interfaces(int sockfd, char **interfaces, size_t *num_interfaces)
   for (in_ix = 0, out_ix = 0; in_ix < *num_interfaces; ++in_ix) {
     strncpy(req.ifr_name, interfaces[in_ix], IFNAMSIZ);
     if (ioctl(sockfd, SIOCGIFINDEX, &req)) {
-      error(0 /* status */, errno, "could not open interface %s", interfaces[in_ix]);
+      error(0 /* status */, errno, "could not open interface %s",
+            interfaces[in_ix]);
       continue;
     }
     interfaces[out_ix++] = interfaces[in_ix];
@@ -128,8 +130,7 @@ int main(int argc, char **argv) {
   remove_bad_interfaces(sockfd, args.interfaces, &args.num_interfaces);
 
   struct ifconf stuff = {
-    .ifc_len = 0,
-    .ifc_buf = NULL,
+      .ifc_len = 0, .ifc_buf = NULL,
   };
 
   if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
