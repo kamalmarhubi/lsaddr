@@ -141,12 +141,15 @@ int main(int argc, char **argv) {
       .ifc_len = 0, .ifc_buf = NULL,
   };
 
+  /* Ask for the correct buffer size */
   if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
     goto errorout;
   }
   if (!(stuff.ifc_buf = malloc(stuff.ifc_len))) {
     goto errorout;
   }
+
+  /* Now ask for the interfaces */
   if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
     goto errorout;
   }
