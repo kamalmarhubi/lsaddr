@@ -4,6 +4,7 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <search.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,17 +33,12 @@ static struct argp_option options[] = {
 
 /* Command line options */
 struct args {
-  /* The union and bit fields are a little hack to allow setting either ipv4 or
-   * ipv6 to result in ip_version_specified being true. */
-  union {
-    int ip_version_specified;
-    struct {
-      int ipv4 : 1;
-      int ipv6 : 1;
-    };
-  };
-  int include_loopback;
-  int include_link_local;
+  bool ip_version_specified;
+  bool ipv4;
+  bool ipv6;
+  bool include_loopback;
+  bool include_link_local;
+  bool interfaces_specified;
   char **interfaces;
   size_t num_interfaces;
 };
@@ -53,18 +49,21 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 
   switch (key) {
     case '4':
-      args->ipv4 = 1;
+      args->ip_version_specified = true;
+      args->ipv4 = true;
       break;
     case '6':
-      args->ipv6 = 1;
+      args->ip_version_specified = true;
+      args->ipv6 = true;
       break;
     case OPT_INCLUDE_LOOPBACK:
-      args->include_loopback = 1;
+      args->include_loopback = true;
       break;
     case OPT_INCLUDE_LINK_LOCAL:
-      args->include_link_local = 1;
+      args->include_link_local = true;
       break;
     case ARGP_KEY_ARGS:
+      args->interfaces_specified = true;
       args->interfaces = state->argv + state->next;
       args->num_interfaces = state->argc - state->next;
       break;
@@ -114,9 +113,12 @@ int cmp(const void *left, const void *right) {
 
 int main(int argc, char **argv) {
   struct args args = {
-      .ip_version_specified = 0, /* also sets ipv4 and ipv6 to 0 */
-      .include_loopback = 0,
-      .include_link_local = 0,
+      .ip_version_specified = false,
+      .ipv4 = false,
+      .ipv6 = false,
+      .include_loopback = false,
+      .include_link_local = false,
+      .interfaces_specified = false,
       .interfaces = NULL,
       .num_interfaces = 0,
   };
@@ -158,7 +160,7 @@ int main(int argc, char **argv) {
 
   for (size_t i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
     char *ifc = stuff.ifc_req[i].ifr_name;
-    if (args.num_interfaces == 0 ||
+    if (!args.interfaces_specified ||
         lfind(&ifc, args.interfaces, &args.num_interfaces, sizeof(char *),
               cmp)) {
       struct sockaddr_in *sockaddr =
