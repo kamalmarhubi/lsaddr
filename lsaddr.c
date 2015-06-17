@@ -161,11 +161,12 @@ int main(int argc, char **argv) {
     if (!args.interfaces_specified ||
         lfind(&ifc, args.interfaces, &args.num_interfaces, sizeof(char *),
               cmp)) {
-      struct sockaddr_in *sockaddr =
-          (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
-      printf("%s\t%s\n",
-             inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)),
-             stuff.ifc_req[i].ifr_name);
+      if (!args.ip_version_specified || args.ipv4) {
+        struct sockaddr_in *sockaddr =
+            (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
+        printf("%s\n",
+               inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)));
+      }
     }
   }
 
