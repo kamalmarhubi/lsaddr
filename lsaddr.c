@@ -1,5 +1,6 @@
 #include <argp.h>
 #include <arpa/inet.h>
+#include <error.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -74,6 +75,33 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 
 static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
 
+/* Removes bad interface names from the `interfaces` array.
+ *
+ * Uses `sockfd` to check interfaces exist. Any non-existent or otherwise
+ * inaccessible interfaces are removed from `interfaces`, and `num_interfaces`
+ * is updated accordingly.
+ *
+ * Returns 0 on success, otherwise it returns -1, and `errno` is set according
+ * to the last failure that ocurred.
+ */
+int remove_bad_interfaces(int sockfd, char **interfaces, size_t *num_interfaces) {
+  // TODO: check args
+  struct ifreq req;
+  size_t in_ix, out_ix;
+  errno = 0;
+  for (in_ix = 0, out_ix = 0; in_ix < *num_interfaces; ++in_ix) {
+    strncpy(req.ifr_name, interfaces[in_ix], IFNAMSIZ);
+    if (ioctl(sockfd, SIOCGIFINDEX, &req)) {
+      error(0 /* status */, errno, "could not open interface %s", interfaces[in_ix]);
+      continue;
+    }
+    interfaces[out_ix++] = interfaces[in_ix];
+  }
+  *num_interfaces = out_ix;
+
+  return errno ? -1 : 0;
+}
+
 int main(int argc, char **argv) {
   struct args args = {
       .ip_version_specified = 0, /* also sets ipv4 and ipv6 to 0 */
@@ -96,6 +124,8 @@ int main(int argc, char **argv) {
   if (sockfd == -1) {
     goto errorout;
   }
+
+  remove_bad_interfaces(sockfd, args.interfaces, &args.num_interfaces);
 
   struct ifconf stuff = {
     .ifc_len = 0,
