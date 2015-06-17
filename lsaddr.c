@@ -139,9 +139,7 @@ int main(int argc, char **argv) {
 
   remove_bad_interfaces(sockfd, args.interfaces, &args.num_interfaces);
 
-  struct ifconf stuff = {
-      .ifc_len = 0, .ifc_buf = NULL,
-  };
+  struct ifconf stuff = {.ifc_len = 0, .ifc_buf = NULL};
 
   /* Ask for the correct buffer size */
   if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
