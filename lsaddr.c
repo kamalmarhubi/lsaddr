@@ -91,8 +91,9 @@ int main(int argc, char **argv) {
   if (access("/proc/net/if_inet6", R_OK)) {
     goto errorout;
   }
-  int ipv4_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-  if (ipv4_fd == -1) {
+
+  int sockfd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_IP);
+  if (sockfd == -1) {
     goto errorout;
   }
 
@@ -101,13 +102,13 @@ int main(int argc, char **argv) {
     .ifc_buf = NULL,
   };
 
-  if (ioctl(ipv4_fd, SIOCGIFCONF, &stuff)) {
+  if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
     goto errorout;
   }
   if (!(stuff.ifc_buf = malloc(stuff.ifc_len))) {
     goto errorout;
   }
-  if (ioctl(ipv4_fd, SIOCGIFCONF, &stuff)) {
+  if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
     goto errorout;
   }
 
