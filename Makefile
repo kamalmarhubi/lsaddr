@@ -15,7 +15,7 @@ LDFLAGS :=
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
 
-%.1: %.adoc
+%.1: %.1.txt
 	$(A2X) --doctype=manpage --format=manpage $<
 
 .PHONY: all
