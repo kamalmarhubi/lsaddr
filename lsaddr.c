@@ -96,9 +96,10 @@ int main(int argc, char **argv) {
     goto errorout;
   }
 
-  struct ifconf stuff;
-  stuff.ifc_len = 0;
-  stuff.ifc_buf = NULL;
+  struct ifconf stuff = {
+    .ifc_len = 0,
+    .ifc_buf = NULL,
+  };
 
   if (ioctl(ipv4_fd, SIOCGIFCONF, &stuff)) {
     goto errorout;
