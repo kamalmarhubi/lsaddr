@@ -42,7 +42,7 @@ struct args {
   int include_loopback;
   int include_link_local;
   char **interfaces;
-  int num_interfaces;
+  size_t num_interfaces;
 };
 
 static error_t parse_opt(int key, char *arg __attribute__((unused)),
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 
   char addr[ADDRSTRLEN];
 
-  for (int i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
+  for (size_t i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
     struct sockaddr_in *sockaddr =
         (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
     printf("%s\t%s\n",
