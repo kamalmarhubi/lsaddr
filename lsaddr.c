@@ -22,6 +22,8 @@
 #define OPT_INCLUDE_LOOPBACK 1
 #define OPT_INCLUDE_LINK_LOCAL 2
 
+#define PROC_NET_IF_INET6_PATH "/proc/net/if_inet6"
+
 static struct argp_option options[] = {
     {"ipv4", '4', 0, 0, "List IPv4 addresses", 0},
     {"ipv6", '6', 0, 0, "List IPv6 addresses", 0},
@@ -166,6 +168,29 @@ int main(int argc, char **argv) {
             (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
         printf("%s\n",
                inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)));
+      }
+    }
+  }
+
+  if (!args.ip_version_specified || args.ipv6) {
+    FILE *if_inet6 = fopen(PROC_NET_IF_INET6_PATH, "r");
+    if (!if_inet6) {
+      error(0 /* status */, errno, "could not open file %s",
+            PROC_NET_IF_INET6_PATH);
+      goto errorout;
+    }
+
+    char ifc[IFNAMSIZ], ip[ADDRSTRLEN];
+    while (fscanf(if_inet6, "%s %*s %*s %*s %*s %s", ip, ifc) != EOF) {
+      char *ifc_p = ifc;
+      if (!args.interfaces_specified ||
+          lfind(&ifc_p, args.interfaces, &args.num_interfaces, sizeof(char *),
+                cmp)) {
+        char pretty_ip[ADDRSTRLEN];
+        snprintf(pretty_ip, sizeof(pretty_ip),
+                 "%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s", ip, ip + 4, ip + 8,
+                 ip + 12, ip + 16, ip + 20, ip + 24, ip + 28);
+        printf("%s\n", pretty_ip);
       }
     }
   }
