@@ -21,6 +21,10 @@ DEPS = $(SRCS:.c=.d)
 .PHONY: all
 all: $(PROG) doc
 
+.PHONY: debug
+debug: CFLAGS += -g
+debug: $(PROG)
+
 .PHONY: doc
 doc: $(DOCS)
 
