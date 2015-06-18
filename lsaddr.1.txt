@@ -7,7 +7,9 @@ lsaddr - list active IP addresses
 
 SYNOPSIS
 --------
+[verse]
 *lsaddr* [ *-46* ] [*--include-loopback*] [*--include-ipv6-link-local*] [ _interface_ ... ]
+*lsaddr --list-interfaces*
 
 DESCRIPTION
 -----------
@@ -27,6 +29,8 @@ OPTIONS
     include addresses for the loopback interface
 *--include-link-local*::
     include IPv6 link local addresses
+*--list-interfaces*::
+    list interfaces and exit
 
 AUTHOR
 ------

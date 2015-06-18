@@ -21,8 +21,12 @@
 /* Keys for command line options without short options */
 #define OPT_INCLUDE_LOOPBACK 1
 #define OPT_INCLUDE_LINK_LOCAL 2
+#define OPT_LIST_INTERFACES 3
 
+#define PROC_NET_DEV_PATH "/proc/net/dev"
 #define PROC_NET_IF_INET6_PATH "/proc/net/if_inet6"
+
+#define PROC_NET_DEV_HEADER_LINES 2
 
 static struct argp_option options[] = {
     {"ipv4", '4', 0, 0, "List IPv4 addresses", 0},
@@ -31,6 +35,8 @@ static struct argp_option options[] = {
      "Include addresses for the loopback interface", 0},
     {"include-link-local", OPT_INCLUDE_LINK_LOCAL, 0, 0,
      "Include IPv6 link-local addresses", 0},
+    {"list-interfaces", OPT_LIST_INTERFACES, 0, 0, "List interfaces and exit",
+     0},
     {0}};
 
 /* Command line options */
@@ -41,6 +47,7 @@ struct args {
   bool include_loopback;
   bool include_link_local;
   bool interfaces_specified;
+  bool list_interfaces;
   char **interfaces;
   size_t num_interfaces;
 };
@@ -64,6 +71,9 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
     case OPT_INCLUDE_LINK_LOCAL:
       args->include_link_local = true;
       break;
+    case OPT_LIST_INTERFACES:
+      args->list_interfaces = true;
+      break;
     case ARGP_KEY_ARGS:
       args->interfaces_specified = true;
       args->interfaces = state->argv + state->next;
@@ -76,6 +86,62 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 }
 
 static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
+
+int get_interfaces(char ***interfaces __attribute__((unused)),
+                   size_t *num_interfaces __attribute__((unused))) {
+  FILE *proc_net_dev = fopen(PROC_NET_DEV_PATH, "r");
+  if (!proc_net_dev) {
+    error(EXIT_FAILURE, errno,
+          "error listing interfaces: could not open file %s",
+          PROC_NET_DEV_PATH);
+  }
+
+  /* Skip header lines */
+  char *line = NULL;
+  size_t len = 0;
+  for (int i = 0; i < PROC_NET_DEV_HEADER_LINES; ++i) {
+    if (getline(&line, &len, proc_net_dev) == -1) {
+      goto errorparse;
+    }
+  }
+
+  /* Save location of first interface line for after counting */
+  fpos_t first_ifc_line;
+  if (fgetpos(proc_net_dev, &first_ifc_line)) {
+    goto errorparse;
+  }
+
+  /* Count interface lines */
+  *num_interfaces = 0;
+  for (; getline(&line, &len, proc_net_dev) != -1; ++*num_interfaces)
+    ;
+  if (ferror(proc_net_dev)) {
+    goto errorparse;
+  }
+
+  *interfaces = calloc(sizeof(char *), *num_interfaces);
+
+  /* Jump back and parse the lines */
+  if (fsetpos(proc_net_dev, &first_ifc_line)) {
+    goto errorparse;
+  }
+
+  for (size_t i = 0;
+       i < *num_interfaces && getline(&line, &len, proc_net_dev) != -1; ++i) {
+    sscanf(line, "%ms", *interfaces + i);
+    *index((*interfaces)[i], ':') = '\0';
+  }
+  if (ferror(proc_net_dev)) {
+    goto errorparse;
+  }
+
+  return 0;
+
+errorparse:
+  error(EXIT_FAILURE, errno,
+        "error listing interfaces: could not parse file %s", PROC_NET_DEV_PATH);
+  return -1;
+}
 
 /* Removes bad interface names from the `interfaces` array.
  *
@@ -121,11 +187,23 @@ int main(int argc, char **argv) {
       .include_loopback = false,
       .include_link_local = false,
       .interfaces_specified = false,
+      .list_interfaces = false,
       .interfaces = NULL,
       .num_interfaces = 0,
   };
 
   argp_parse(&argp, argc, argv, 0, 0, &args);
+
+  char **interfaces;
+  size_t num_interfaces;
+  get_interfaces(&interfaces, &num_interfaces);
+
+  if (args.list_interfaces) {
+    for (size_t i = 0; i < num_interfaces; ++i) {
+      printf("%s\n", interfaces[i]);
+    }
+    exit(EXIT_SUCCESS);
+  }
 
   if (access("/proc/net", R_OK)) {
     goto errorout;
