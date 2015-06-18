@@ -21,7 +21,7 @@ DEPS = $(SRCS:.c=.d)
 .PHONY: all
 all: $(PROG) doc
 
-.PHONE: doc
+.PHONY: doc
 doc: $(DOCS)
 
 -include $(DEPS)
