@@ -87,6 +87,7 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 
 static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
 
+int cmp(const void *left, const void *right);
 int get_interfaces(char ***interfaces __attribute__((unused)),
                    size_t *num_interfaces __attribute__((unused))) {
   FILE *proc_net_dev = fopen(PROC_NET_DEV_PATH, "r");
@@ -134,6 +135,8 @@ int get_interfaces(char ***interfaces __attribute__((unused)),
   if (ferror(proc_net_dev)) {
     goto errorparse;
   }
+
+  qsort(*interfaces, *num_interfaces, sizeof(char *), cmp);
 
   return 0;
 
