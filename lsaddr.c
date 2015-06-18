@@ -130,7 +130,7 @@ int get_interfaces(char ***interfaces __attribute__((unused)),
   for (size_t i = 0;
        i < *num_interfaces && getline(&line, &len, proc_net_dev) != -1; ++i) {
     sscanf(line, "%ms", *interfaces + i);
-    *index((*interfaces)[i], ':') = '\0';
+    *index((*interfaces)[i], ':') = '\0'; /* null out colon suffix */
   }
   if (ferror(proc_net_dev)) {
     goto errorparse;
