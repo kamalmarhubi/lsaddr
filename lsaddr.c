@@ -52,6 +52,12 @@ struct args {
   size_t num_interfaces;
 };
 
+struct str_list {
+  size_t len;
+  char **entries;
+  ;
+};
+
 static error_t parse_opt(int key, char *arg __attribute__((unused)),
                          struct argp_state *state) {
   struct args *args = state->input;
@@ -88,8 +94,7 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
 
 int cmp(const void *left, const void *right);
-int get_interfaces(char ***interfaces __attribute__((unused)),
-                   size_t *num_interfaces __attribute__((unused))) {
+int get_interfaces(struct str_list *interfaces) {
   FILE *proc_net_dev = fopen(PROC_NET_DEV_PATH, "r");
   if (!proc_net_dev) {
     error(EXIT_FAILURE, errno,
@@ -113,14 +118,14 @@ int get_interfaces(char ***interfaces __attribute__((unused)),
   }
 
   /* Count interface lines */
-  *num_interfaces = 0;
-  for (; getline(&line, &len, proc_net_dev) != -1; ++*num_interfaces)
+  interfaces->len = 0;
+  for (; getline(&line, &len, proc_net_dev) != -1; ++interfaces->len)
     ;
   if (ferror(proc_net_dev)) {
     goto errorparse;
   }
 
-  *interfaces = calloc(sizeof(char *), *num_interfaces);
+  interfaces->entries = calloc(sizeof(char *), interfaces->len);
 
   /* Jump back and parse the lines */
   if (fsetpos(proc_net_dev, &first_ifc_line)) {
@@ -128,15 +133,15 @@ int get_interfaces(char ***interfaces __attribute__((unused)),
   }
 
   for (size_t i = 0;
-       i < *num_interfaces && getline(&line, &len, proc_net_dev) != -1; ++i) {
-    sscanf(line, "%ms", *interfaces + i);
-    *index((*interfaces)[i], ':') = '\0'; /* null out colon suffix */
+       i < interfaces->len && getline(&line, &len, proc_net_dev) != -1; ++i) {
+    sscanf(line, "%ms", interfaces->entries + i);
+    *index(interfaces->entries[i], ':') = '\0'; /* null out colon suffix */
   }
   if (ferror(proc_net_dev)) {
     goto errorparse;
   }
 
-  qsort(*interfaces, *num_interfaces, sizeof(char *), cmp);
+  qsort(interfaces->entries, interfaces->len, sizeof(char *), cmp);
 
   return 0;
 
@@ -197,13 +202,12 @@ int main(int argc, char **argv) {
 
   argp_parse(&argp, argc, argv, 0, 0, &args);
 
-  char **interfaces;
-  size_t num_interfaces;
-  get_interfaces(&interfaces, &num_interfaces);
+  struct str_list interfaces;
+  get_interfaces(&interfaces);
 
   if (args.list_interfaces) {
-    for (size_t i = 0; i < num_interfaces; ++i) {
-      printf("%s\n", interfaces[i]);
+    for (size_t i = 0; i < interfaces.len; ++i) {
+      printf("%s\n", interfaces.entries[i]);
     }
     exit(EXIT_SUCCESS);
   }
