@@ -39,6 +39,12 @@ static struct argp_option options[] = {
      0},
     {0}};
 
+struct str_list {
+  size_t len;
+  char **entries;
+  ;
+};
+
 /* Command line options */
 struct args {
   bool ip_version_specified;
@@ -48,14 +54,7 @@ struct args {
   bool include_link_local;
   bool interfaces_specified;
   bool list_interfaces;
-  char **interfaces;
-  size_t num_interfaces;
-};
-
-struct str_list {
-  size_t len;
-  char **entries;
-  ;
+  struct str_list interfaces;
 };
 
 static error_t parse_opt(int key, char *arg __attribute__((unused)),
@@ -82,8 +81,8 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
       break;
     case ARGP_KEY_ARGS:
       args->interfaces_specified = true;
-      args->interfaces = state->argv + state->next;
-      args->num_interfaces = state->argc - state->next;
+      args->interfaces.entries = state->argv + state->next;
+      args->interfaces.len = state->argc - state->next;
       break;
     default:
       return ARGP_ERR_UNKNOWN;
@@ -196,8 +195,7 @@ int main(int argc, char **argv) {
       .include_link_local = false,
       .interfaces_specified = false,
       .list_interfaces = false,
-      .interfaces = NULL,
-      .num_interfaces = 0,
+      .interfaces = {.len = 0, .entries = NULL},
   };
 
   argp_parse(&argp, argc, argv, 0, 0, &args);
@@ -224,7 +222,7 @@ int main(int argc, char **argv) {
     goto errorout;
   }
 
-  remove_bad_interfaces(sockfd, args.interfaces, &args.num_interfaces);
+  remove_bad_interfaces(sockfd, args.interfaces.entries, &args.interfaces.len);
 
   struct ifconf stuff = {.ifc_len = 0, .ifc_buf = NULL};
 
@@ -246,8 +244,8 @@ int main(int argc, char **argv) {
   for (size_t i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
     char *ifc = stuff.ifc_req[i].ifr_name;
     if (!args.interfaces_specified ||
-        lfind(&ifc, args.interfaces, &args.num_interfaces, sizeof(char *),
-              cmp)) {
+        lfind(&ifc, args.interfaces.entries, &args.interfaces.len,
+              sizeof(char *), cmp)) {
       if (!args.ip_version_specified || args.ipv4) {
         struct sockaddr_in *sockaddr =
             (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
@@ -269,8 +267,8 @@ int main(int argc, char **argv) {
     while (fscanf(if_inet6, "%s %*s %*s %*s %*s %s", ip, ifc) != EOF) {
       char *ifc_p = ifc;
       if (!args.interfaces_specified ||
-          lfind(&ifc_p, args.interfaces, &args.num_interfaces, sizeof(char *),
-                cmp)) {
+          lfind(&ifc_p, args.interfaces.entries, &args.interfaces.len,
+                sizeof(char *), cmp)) {
         char pretty_ip[ADDRSTRLEN];
         snprintf(pretty_ip, sizeof(pretty_ip),
                  "%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s", ip, ip + 4, ip + 8,
