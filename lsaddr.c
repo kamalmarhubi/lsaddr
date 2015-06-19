@@ -37,7 +37,7 @@ static struct argp_option options[] = {
      "Include IPv6 link-local addresses", 0},
     {"list-interfaces", OPT_LIST_INTERFACES, 0, 0, "List interfaces and exit",
      0},
-    {0}};
+    {0, 0, 0, 0, 0, 0}};
 
 struct str_list {
   size_t len;
