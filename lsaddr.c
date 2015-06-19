@@ -93,6 +93,13 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
 
 int cmp(const void *left, const void *right);
+
+/* Get list of interface names
+ *
+ * The names are stored in `interfaces`. They are allocated with `malloc(3)`
+ * and it is the responsibility of the caller to free both the interface names,
+ * and the array at `interfaces->entries` that is allocated for them.
+ */
 int get_interfaces(struct str_list *interfaces) {
   FILE *proc_net_dev = fopen(PROC_NET_DEV_PATH, "r");
   if (!proc_net_dev) {
