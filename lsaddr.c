@@ -92,7 +92,12 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 
 static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
 
-int cmp(const void *left, const void *right);
+int cmp(const void *left, const void *right) {
+  char **left_sp = (char **)left;
+  char **right_sp = (char **)right;
+
+  return strcmp(*left_sp, *right_sp);
+}
 
 /* Get list of interface names
  *
@@ -194,13 +199,6 @@ int remove_bad_interfaces(const struct str_list interfaces,
   specified->len = out_ix;
 
   return errno ? -1 : 0;
-}
-
-int cmp(const void *left, const void *right) {
-  char **left_sp = (char **)left;
-  char **right_sp = (char **)right;
-
-  return strcmp(*left_sp, *right_sp);
 }
 
 int main(int argc, char **argv) {
