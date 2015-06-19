@@ -171,11 +171,10 @@ errorparse:
   return -1;
 }
 
-/* Removes bad interface names from the `interfaces` array.
+/* Removes bad interface names from `specified`.
  *
- * Uses `sockfd` to check interfaces exist. Any non-existent or otherwise
- * inaccessible interfaces are removed from `interfaces`, and `num_interfaces`
- * is updated accordingly.
+ * Checks that interface names in `specified` exist in `interfaces`; any that
+ * do not are removed.
  *
  * Returns 0 on success, otherwise it returns -1, and `errno` is set according
  * to the last failure that ocurred.
