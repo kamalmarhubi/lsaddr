@@ -25,6 +25,11 @@ all: $(PROG) doc
 debug: CFLAGS += -g
 debug: $(PROG)
 
+.PHONY: asan
+asan: CFLAGS += -O1 -g -fsanitize=address -fno-omit-frame-pointer
+asan: CC = clang
+asan: $(PROG)
+
 .PHONY: doc
 doc: $(DOCS)
 

@@ -120,7 +120,7 @@ int get_interfaces(struct str_list *interfaces) {
   /* Save location of first interface line for after counting */
   fpos_t first_ifc_line;
   if (fgetpos(proc_net_dev, &first_ifc_line)) {
-    goto errorparse;
+    goto errorfreeline;
   }
 
   /* Count interface lines */
@@ -128,14 +128,14 @@ int get_interfaces(struct str_list *interfaces) {
   for (; getline(&line, &len, proc_net_dev) != -1; ++interfaces->len)
     ;
   if (ferror(proc_net_dev)) {
-    goto errorparse;
+    goto errorfreeline;
   }
 
   interfaces->entries = calloc(sizeof(char *), interfaces->len);
 
   /* Jump back and parse the lines */
   if (fsetpos(proc_net_dev, &first_ifc_line)) {
-    goto errorparse;
+    goto errorfreearray;
   }
 
   for (size_t i = 0;
@@ -144,13 +144,22 @@ int get_interfaces(struct str_list *interfaces) {
     *index(interfaces->entries[i], ':') = '\0'; /* null out colon suffix */
   }
   if (ferror(proc_net_dev)) {
-    goto errorparse;
+    goto errorfreestrings;
   }
 
   qsort(interfaces->entries, interfaces->len, sizeof(char *), cmp);
+  free(line);
 
   return 0;
 
+errorfreestrings:
+  for (size_t i = 0; i < interfaces->len && interfaces->entries[i];
+       free(interfaces->entries[i++]))
+    ;
+errorfreearray:
+  free(interfaces->entries);
+errorfreeline:
+  free(line);
 errorparse:
   error(EXIT_FAILURE, errno,
         "error listing interfaces: could not parse file %s", PROC_NET_DEV_PATH);
@@ -244,7 +253,7 @@ int main(int argc, char **argv) {
 
   /* Now ask for the interfaces */
   if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
-    goto errorout;
+    goto errorfree;
   }
 
   char addr[ADDRSTRLEN];
@@ -268,7 +277,7 @@ int main(int argc, char **argv) {
     if (!if_inet6) {
       error(0 /* status */, errno, "could not open file %s",
             PROC_NET_IF_INET6_PATH);
-      goto errorout;
+      goto errorfree;
     }
 
     char ifc[IFNAMSIZ], ip[ADDRSTRLEN];
@@ -286,8 +295,16 @@ int main(int argc, char **argv) {
     }
   }
 
+  free(stuff.ifc_buf);
+  for (size_t i = 0; i < interfaces.len && interfaces.entries[i];
+       free(interfaces.entries[i++]))
+    ;
+  free(interfaces.entries);
+
   return 0;
 
+errorfree:
+  free(stuff.ifc_buf);
 errorout:
   perror("something went wrong");
   exit(EXIT_FAILURE);
