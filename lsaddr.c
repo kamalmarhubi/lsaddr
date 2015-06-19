@@ -28,24 +28,14 @@
 
 #define PROC_NET_DEV_HEADER_LINES 2
 
-static struct argp_option options[] = {
-    {"ipv4", '4', 0, 0, "List IPv4 addresses", 0},
-    {"ipv6", '6', 0, 0, "List IPv6 addresses", 0},
-    {"include-loopback", OPT_INCLUDE_LOOPBACK, 0, 0,
-     "Include addresses for the loopback interface", 0},
-    {"include-link-local", OPT_INCLUDE_LINK_LOCAL, 0, 0,
-     "Include IPv6 link-local addresses", 0},
-    {"list-interfaces", OPT_LIST_INTERFACES, 0, 0, "List interfaces and exit",
-     0},
-    {0, 0, 0, 0, 0, 0}};
-
+/* Simple listof strings */
 struct str_list {
   size_t len;
   char **entries;
   ;
 };
 
-/* Command line options */
+/* Storage for command line options */
 struct args {
   bool ip_version_specified;
   bool ipv4;
@@ -57,6 +47,19 @@ struct args {
   struct str_list interfaces;
 };
 
+/* Options for argp */
+static struct argp_option options[] = {
+    {"ipv4", '4', 0, 0, "List IPv4 addresses", 0},
+    {"ipv6", '6', 0, 0, "List IPv6 addresses", 0},
+    {"include-loopback", OPT_INCLUDE_LOOPBACK, 0, 0,
+     "Include addresses for the loopback interface", 0},
+    {"include-link-local", OPT_INCLUDE_LINK_LOCAL, 0, 0,
+     "Include IPv6 link-local addresses", 0},
+    {"list-interfaces", OPT_LIST_INTERFACES, 0, 0, "List interfaces and exit",
+     0},
+    {0, 0, 0, 0, 0, 0}};
+
+/* Option parser for argp */
 static error_t parse_opt(int key, char *arg __attribute__((unused)),
                          struct argp_state *state) {
   struct args *args = state->input;
@@ -92,6 +95,7 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
 
 static struct argp argp = {options, parse_opt, 0, 0, 0, 0, 0};
 
+/* String comparator for qsort, lfind and friends */
 int cmp(const void *left, const void *right) {
   char **left_sp = (char **)left;
   char **right_sp = (char **)right;
