@@ -159,22 +159,23 @@ errorparse:
  * Returns 0 on success, otherwise it returns -1, and `errno` is set according
  * to the last failure that ocurred.
  */
-int remove_bad_interfaces(int sockfd, char **interfaces,
-                          size_t *num_interfaces) {
-  // TODO: check args
-  struct ifreq req;
+int remove_bad_interfaces(const struct str_list interfaces,
+                          struct str_list *specified) {
   size_t in_ix, out_ix;
   errno = 0;
-  for (in_ix = 0, out_ix = 0; in_ix < *num_interfaces; ++in_ix) {
-    strncpy(req.ifr_name, interfaces[in_ix], IFNAMSIZ);
-    if (ioctl(sockfd, SIOCGIFINDEX, &req)) {
-      error(0 /* status */, errno, "could not open interface %s",
-            interfaces[in_ix]);
+  for (in_ix = 0, out_ix = 0; in_ix < specified->len; ++in_ix) {
+    char *checking = specified->entries[in_ix];
+    if (!lfind(&checking, interfaces.entries, (size_t *)&interfaces.len,
+               sizeof(char *), cmp)) {
+      errno = ENODEV;
+      error(0 /* status */, errno, "could not inspect interface %s",
+            specified->entries[in_ix]);
       continue;
     }
-    interfaces[out_ix++] = interfaces[in_ix];
+
+    specified->entries[out_ix++] = specified->entries[in_ix];
   }
-  *num_interfaces = out_ix;
+  specified->len = out_ix;
 
   return errno ? -1 : 0;
 }
@@ -222,7 +223,7 @@ int main(int argc, char **argv) {
     goto errorout;
   }
 
-  remove_bad_interfaces(sockfd, args.interfaces.entries, &args.interfaces.len);
+  remove_bad_interfaces(interfaces, &args.interfaces);
 
   struct ifconf stuff = {.ifc_len = 0, .ifc_buf = NULL};
 
