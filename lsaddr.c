@@ -334,7 +334,12 @@ int main(int argc, char **argv) {
         continue;
       }
 
-      printf("%s\n", inet_ntop(AF_INET6, &addr, ip, sizeof(ip)));
+      /* IPv6 link local addresses need the scope id or interface name. */
+      if (IN6_IS_ADDR_LINKLOCAL(&addr)) {
+        printf("%s%%%s\n", inet_ntop(AF_INET6, &addr, ip, sizeof(ip)), ifc);
+      } else {
+        printf("%s\n", inet_ntop(AF_INET6, &addr, ip, sizeof(ip)));
+      }
     }
   }
 
