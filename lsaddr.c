@@ -260,17 +260,32 @@ int main(int argc, char **argv) {
   char addr[ADDRSTRLEN];
 
   for (size_t i = 0, len = stuff.ifc_len / sizeof(struct ifreq); i < len; ++i) {
-    char *ifc = stuff.ifc_req[i].ifr_name;
-    if (!args.interfaces_specified ||
-        lfind(&ifc, args.interfaces.entries, &args.interfaces.len,
-              sizeof(char *), cmp)) {
-      if (!args.ip_version_specified || args.ipv4) {
-        struct sockaddr_in *sockaddr =
-            (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
-        printf("%s\n",
-               inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)));
-      }
+    if (args.ip_version_specified && !args.ipv4) {
+      continue;
     }
+
+    char *ifc = stuff.ifc_req[i].ifr_name;
+    struct ifreq req;
+    strncpy(req.ifr_name, ifc, IFNAMSIZ);
+    if (ioctl(sockfd, SIOCGIFFLAGS, &req)) {
+      goto errorfree;
+    }
+
+    bool curr_ifc_specified = lfind(&ifc, args.interfaces.entries,
+                                    &args.interfaces.len, sizeof(char *), cmp);
+
+    if (args.interfaces_specified && !curr_ifc_specified) {
+      continue;
+    }
+
+    if (req.ifr_flags & IFF_LOOPBACK && !args.include_loopback &&
+        !curr_ifc_specified) {
+      continue;
+    }
+
+    struct sockaddr_in *sockaddr =
+        (struct sockaddr_in *)&stuff.ifc_req[i].ifr_addr;
+    printf("%s\n", inet_ntop(AF_INET, &sockaddr->sin_addr, addr, sizeof(addr)));
   }
 
   if (!args.ip_version_specified || args.ipv6) {
@@ -284,15 +299,35 @@ int main(int argc, char **argv) {
     char ifc[IFNAMSIZ], ip[ADDRSTRLEN];
     while (fscanf(if_inet6, "%s %*s %*s %*s %*s %s", ip, ifc) != EOF) {
       char *ifc_p = ifc;
-      if (!args.interfaces_specified ||
+      bool curr_ifc_specified =
           lfind(&ifc_p, args.interfaces.entries, &args.interfaces.len,
-                sizeof(char *), cmp)) {
-        char pretty_ip[ADDRSTRLEN];
-        snprintf(pretty_ip, sizeof(pretty_ip),
-                 "%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s", ip, ip + 4, ip + 8,
-                 ip + 12, ip + 16, ip + 20, ip + 24, ip + 28);
-        printf("%s\n", pretty_ip);
+                sizeof(char *), cmp);
+
+      if (args.interfaces_specified && !curr_ifc_specified) {
+        continue;
       }
+
+      char pretty_ip[ADDRSTRLEN];
+      snprintf(pretty_ip, sizeof(pretty_ip),
+               "%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s:%.4s", ip, ip + 4, ip + 8,
+               ip + 12, ip + 16, ip + 20, ip + 24, ip + 28);
+
+      struct in6_addr addr;
+      if (!inet_pton(AF_INET6, pretty_ip, &addr)) {
+        fprintf(stderr, "something bad happened\n");
+        exit(EXIT_FAILURE);
+      }
+
+      if (IN6_IS_ADDR_LOOPBACK(&addr) && !args.include_loopback &&
+          !curr_ifc_specified) {
+        continue;
+      }
+
+      if (IN6_IS_ADDR_LINKLOCAL(&addr) && !args.include_link_local) {
+        continue;
+      }
+
+      printf("%s\n", inet_ntop(AF_INET6, &addr, ip, sizeof(ip)));
     }
   }
 
