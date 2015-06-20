@@ -90,6 +90,7 @@ static error_t parse_opt(int key, char *arg __attribute__((unused)),
     default:
       return ARGP_ERR_UNKNOWN;
   }
+
   return 0;
 }
 
@@ -152,6 +153,7 @@ int get_interfaces(struct str_list *interfaces) {
     sscanf(line, "%ms", interfaces->entries + i);
     *index(interfaces->entries[i], ':') = '\0'; /* null out colon suffix */
   }
+
   if (ferror(proc_net_dev)) {
     goto errorfreestrings;
   }
@@ -231,6 +233,7 @@ int main(int argc, char **argv) {
   if (access("/proc/net", R_OK)) {
     goto errorout;
   }
+
   if (access("/proc/net/if_inet6", R_OK)) {
     goto errorout;
   }
@@ -248,6 +251,7 @@ int main(int argc, char **argv) {
   if (ioctl(sockfd, SIOCGIFCONF, &stuff)) {
     goto errorout;
   }
+
   if (!(stuff.ifc_buf = malloc(stuff.ifc_len))) {
     goto errorout;
   }
