@@ -109,6 +109,9 @@ int cmp(const void *left, const void *right) {
  * The names are stored in `interfaces`. They are allocated with `malloc(3)`
  * and it is the responsibility of the caller to free both the interface names,
  * and the array at `interfaces->entries` that is allocated for them.
+ *
+ * Returns 0 on success, otherwise it returns -1, and `errno` is set according
+ * to the last failure that ocurred.
  */
 int get_interfaces(struct str_list *interfaces) {
   FILE *proc_net_dev = fopen(PROC_NET_DEV_PATH, "r");
